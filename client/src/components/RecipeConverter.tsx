@@ -59,6 +59,28 @@ export default function RecipeConverter() {
       const response = await apiRequest("POST", "/api/photo-to-recipe", { image: imageData });
       return response.json();
     },
+    onSuccess: (data) => {
+      if (data.success) {
+        setConvertedResult(data.recipeText);
+        toast({
+          title: "Recipe Extracted",
+          description: "Recipe successfully extracted from the image",
+        });
+      } else {
+        toast({
+          title: "Extraction Error",
+          description: data.error || "Failed to extract recipe from image",
+          variant: "destructive",
+        });
+      }
+    },
+    onError: (error) => {
+      toast({
+        title: "Processing Error",
+        description: error instanceof Error ? error.message : "Failed to process image",
+        variant: "destructive",
+      });
+    },
   });
   
   // Recipe by dish name mutation
