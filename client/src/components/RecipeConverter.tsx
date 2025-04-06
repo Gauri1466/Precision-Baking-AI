@@ -204,7 +204,7 @@ export default function RecipeConverter() {
               <TabsTrigger value="text-input" className="flex items-center justify-center">
                 <span className="flex items-center">
                   <Upload className="h-4 w-4 mr-2" />
-                  Convert Measurements
+                  Generate or Convert
                 </span>
               </TabsTrigger>
               <TabsTrigger value="photo-input" className="flex items-center justify-center">
@@ -216,7 +216,7 @@ export default function RecipeConverter() {
               <TabsTrigger value="dish-input" className="flex items-center justify-center">
                 <span className="flex items-center">
                   <ChefHat className="h-4 w-4 mr-2" />
-                  Generate Recipe
+                  Generate by Dish Name
                 </span>
               </TabsTrigger>
             </TabsList>
@@ -226,17 +226,24 @@ export default function RecipeConverter() {
               <form onSubmit={handleConversion}>
                 <div className="mb-6">
                   <Label htmlFor="recipe-input" className="block text-sm font-medium mb-2">
-                    Paste Your Recipe for Measurement Conversion
+                    Enter Ingredients or Recipe
                   </Label>
+                  <div className="text-xs text-gray-500 mb-2">
+                    <p>Our AI can:</p>
+                    <ul className="list-disc pl-5 mt-1 mb-2 space-y-1">
+                      <li>Generate a complete recipe from a list of ingredients</li>
+                      <li>Convert measurements in an existing recipe (cup → gram or gram → cup)</li>
+                    </ul>
+                  </div>
                   <Textarea
                     id="recipe-input"
                     className="min-h-[150px] resize-y"
-                    placeholder="Paste your recipe with measurements to convert (e.g., '2 cups flour, 1 tablespoon sugar')..."
+                    placeholder="Enter ingredients (one per line) or paste a complete recipe to convert..."
                     value={recipeInput}
                     onChange={(e) => setRecipeInput(e.target.value)}
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    This tab only converts measurements in existing recipes, it doesn't generate new recipes.
+                    Our AI detects whether you've entered ingredients or a recipe and processes accordingly.
                   </p>
                 </div>
                 
@@ -257,6 +264,9 @@ export default function RecipeConverter() {
                         <SelectItem value="gram-to-cup">Grams to Cups</SelectItem>
                         <SelectItem value="oz-to-gram">Ounces to Grams</SelectItem>
                         <SelectItem value="tbsp-to-gram">Tablespoons to Grams</SelectItem>
+                        <SelectItem value="gram-to-tbsp">Grams to Tablespoons</SelectItem>
+                        <SelectItem value="tsp-to-gram">Teaspoons to Grams</SelectItem>
+                        <SelectItem value="gram-to-tsp">Grams to Teaspoons</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -372,10 +382,10 @@ export default function RecipeConverter() {
                   {convertMutation.isPending ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Converting...
+                      Generating Recipe...
                     </>
                   ) : (
-                    "Convert Recipe"
+                    "Generate or Convert Recipe"
                   )}
                 </Button>
               </form>
@@ -385,7 +395,7 @@ export default function RecipeConverter() {
             <TabsContent value="photo-input">
               <div className="mb-6">
                 <Label className="block text-sm font-medium mb-2">
-                  Upload a Photo of a Recipe
+                  Upload a Photo of a Recipe or Dish
                 </Label>
                 
                 {/* Hidden file input */}
@@ -405,7 +415,7 @@ export default function RecipeConverter() {
                   >
                     <Image className="h-12 w-12 text-gray-400 mb-3" />
                     <p className="text-center text-sm text-gray-500">
-                      Click to upload a photo of a recipe card, book page, or handwritten recipe
+                      Click to upload a photo of a recipe card, book page, handwritten recipe, or any food dish
                     </p>
                     <p className="text-center text-xs text-gray-400 mt-2">
                       Supports JPG, JPEG, PNG formats
@@ -432,9 +442,11 @@ export default function RecipeConverter() {
               
               <div className="mb-6">
                 <p className="text-sm text-gray-600 mb-4">
-                  Our AI will analyze the image and extract the recipe with ingredients and instructions.
-                  It can read recipe cards, book pages, or handwritten recipes and generate a complete
-                  recipe based on what it identifies in the image.
+                  Our AI will analyze the image and either:
+                  <ul className="list-disc pl-5 mt-2 space-y-1">
+                    <li>Extract a recipe from recipe cards, book pages, or handwritten recipes</li>
+                    <li>Identify the dish from a food photo and generate a complete recipe for it</li>
+                  </ul>
                 </p>
                 
                 <Button 
@@ -563,10 +575,12 @@ export default function RecipeConverter() {
             <div className="flex justify-between items-center mb-4">
               <h2 className="font-heading text-2xl font-bold">
                 {activeTab === "text-input" 
-                  ? "Converted Recipe"
+                  ? (convertedResult && convertedResult.includes("# Converted Recipe")) 
+                    ? "Converted Recipe" 
+                    : "Generated Recipe from Ingredients"
                   : activeTab === "photo-input"
                     ? "Extracted Recipe"
-                    : "Generated Recipe"}
+                    : "Generated Recipe by Dish Name"}
               </h2>
               <Button 
                 variant="ghost" 

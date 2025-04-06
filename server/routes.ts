@@ -8,7 +8,7 @@ import {
   insertConversionHistorySchema 
 } from "@shared/schema";
 import { z } from "zod";
-import { extractRecipeFromImage, convertRecipeText, getRecipeByDishName } from "./services/geminiService";
+import { extractRecipeFromImage, convertRecipeText, getRecipeByDishName, generateRecipeFromIngredients } from "./services/geminiService";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const apiRouter = express.Router();
@@ -183,15 +183,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Use Gemini AI to convert the recipe
+      // Determine if this is an ingredient list for recipe generation or a full recipe for conversion
       try {
-        const convertedRecipe = await convertRecipeText(
-          recipeText,
-          conversionType,
-          scaleFactor,
-          !!humidityAdjust,
-          !!proMode
-        );
+        let convertedRecipe;
+        
+        // Check if this is an ingredient list for recipe generation
+        // by examining if it's in a list-like format without cooking instructions
+        const isIngredientList = recipeText.split('\n')
+          .filter((line: string) => line.trim().length > 0)
+          .every((line: string) => !line.includes("preheat") && 
+                        !line.includes("mix") && 
+                        !line.includes("stir") && 
+                        !line.includes("bake") && 
+                        !line.includes("cook") &&
+                        !line.includes("instruction"));
+        
+        if (isIngredientList) {
+          // Generate a recipe from ingredients
+          convertedRecipe = await generateRecipeFromIngredients(
+            recipeText,
+            conversionType,
+            !!humidityAdjust,
+            !!proMode
+          );
+        } else {
+          // Convert an existing recipe
+          convertedRecipe = await convertRecipeText(
+            recipeText,
+            conversionType,
+            scaleFactor,
+            !!humidityAdjust,
+            !!proMode
+          );
+        }
         
         // Save to conversion history if user is logged in
         // This would be implemented with actual user authentication in production

@@ -66,18 +66,22 @@ export async function extractRecipeFromImage(base64Image: string): Promise<Photo
     };
 
     // Create a prompt for the model
-    const prompt = "You are a recipe assistant. Please extract the complete recipe from this image. " + 
+    const prompt = "You are a professional chef at PreciseBaker. " +
+      "Either extract a recipe from the image OR if the image shows a prepared dish (like a food photo), " +
+      "identify what dish it is and create a complete recipe for it. " + 
       "Format your response as follows:\n" +
       "Title: [Recipe Title]\n" +
       "Ingredients:\n" +
-      "- [Ingredient 1]\n" +
-      "- [Ingredient 2]\n" +
+      "- [Ingredient 1 with precise measurements]\n" +
+      "- [Ingredient 2 with precise measurements]\n" +
       "...\n" +
       "Instructions:\n" +
       "1. [Step 1]\n" +
       "2. [Step 2]\n" +
       "...\n" +
-      "If there are any measurements, make sure they are specific and accurate.";
+      "If there are any measurements, make sure they are specific and accurate. " +
+      "For dish photos where no recipe is visible, create a detailed authentic recipe " +
+      "based on what you can identify in the image.";
 
     // Generate content with the vision model
     const result = await visionModel.generateContent([prompt, imageData]);
@@ -176,6 +180,50 @@ export async function convertRecipeText(
  * @param dietary - Optional dietary restrictions
  * @returns Complete recipe text
  */
+/**
+ * Generates a recipe based on a list of ingredients
+ * @param ingredients - List of ingredients to use in the recipe
+ * @param conversionType - Type of measurement preferred
+ * @param humidityAdjust - Whether to adjust for humidity
+ * @param proMode - Whether to include professional baking notes
+ * @returns Complete recipe text
+ */
+export async function generateRecipeFromIngredients(
+  ingredients: string,
+  conversionType: string,
+  humidityAdjust: boolean,
+  proMode: boolean
+): Promise<string> {
+  try {
+    // Create a prompt for the model
+    let prompt = `You are a professional chef at PreciseBaker. Please generate a detailed recipe using these ingredients:
+    
+    ${ingredients}
+    
+    Please use ${conversionType === 'cup-to-gram' ? 'weight measurements (grams)' : 'volume measurements (cups, tablespoons)'} when listing ingredients.
+    ${humidityAdjust ? 'Adjust the recipe for high humidity conditions.' : ''}
+    ${proMode ? 'Include professional baking notes and tips.' : ''}
+    
+    Your recipe should include:
+    1. A creative descriptive title
+    2. A brief introduction to the dish
+    3. Complete ingredient list with precise measurements
+    4. Clear, step-by-step instructions
+    5. Cooking time and servings
+    6. Optional tips for perfect results
+    
+    Format your response as a complete recipe with markdown formatting. Make sure all measurements are precise and accurate.`;
+
+    // Generate content with the model
+    const result = await textModel.generateContent(prompt);
+    const response = await result.response;
+    return response.text();
+  } catch (error) {
+    console.error('Error generating recipe with Gemini:', error);
+    throw new Error('Failed to generate recipe from ingredients');
+  }
+}
+
 export async function getRecipeByDishName(
   dishName: string,
   cuisine?: string,
