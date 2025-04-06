@@ -2,7 +2,13 @@ import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/ge
 
 // Initialize the Google Generative AI client
 const apiKey = process.env.GEMINI_API_KEY;
-const genAI = new GoogleGenerativeAI(apiKey!);
+
+if (!apiKey) {
+  console.error('GEMINI_API_KEY environment variable is not set');
+  throw new Error('GEMINI_API_KEY environment variable is not set');
+}
+
+const genAI = new GoogleGenerativeAI(apiKey);
 
 // Define safety settings to allow processing of recipe content
 const safetySettings = [
@@ -24,9 +30,15 @@ const safetySettings = [
   },
 ];
 
-// Get the Gemini Pro Vision model
-const model = genAI.getGenerativeModel({
-  model: "gemini-pro-vision",
+// Get the Gemini Pro Vision model (for image processing)
+const visionModel = genAI.getGenerativeModel({
+  model: "gemini-1.5-pro-vision-latest",
+  safetySettings,
+});
+
+// Get the Gemini Pro model (for text processing)
+const textModel = genAI.getGenerativeModel({
+  model: "gemini-1.5-pro-latest",
   safetySettings,
 });
 
@@ -67,8 +79,8 @@ export async function extractRecipeFromImage(base64Image: string): Promise<Photo
       "...\n" +
       "If there are any measurements, make sure they are specific and accurate.";
 
-    // Generate content with the model
-    const result = await model.generateContent([prompt, imageData]);
+    // Generate content with the vision model
+    const result = await visionModel.generateContent([prompt, imageData]);
     const response = await result.response;
     const text = response.text();
 
@@ -81,21 +93,21 @@ export async function extractRecipeFromImage(base64Image: string): Promise<Photo
     const ingredientsText = ingredientsSection ? ingredientsSection[1] : "";
     const ingredients = ingredientsText
       .split('\n')
-      .map(line => line.trim())
-      .filter(line => line.startsWith('-'))
-      .map(line => line.substring(1).trim());
+      .map((line: string) => line.trim())
+      .filter((line: string) => line.startsWith('-'))
+      .map((line: string) => line.substring(1).trim());
 
     // Extract instructions
     const instructionsSection = text.match(/Instructions:([\s\S]*?)$/);
     const instructionsText = instructionsSection ? instructionsSection[1] : "";
     const instructions = instructionsText
       .split('\n')
-      .map(line => line.trim())
-      .filter(line => /^\d+\./.test(line))
-      .map(line => line.replace(/^\d+\.\s*/, ''));
+      .map((line: string) => line.trim())
+      .filter((line: string) => /^\d+\./.test(line))
+      .map((line: string) => line.replace(/^\d+\.\s*/, ''));
 
     // Format the complete recipe text
-    const recipeText = `# ${title}\n\n## Ingredients\n${ingredients.map(ing => `- ${ing}`).join('\n')}\n\n## Instructions\n${instructions.map((inst, idx) => `${idx + 1}. ${inst}`).join('\n')}`;
+    const recipeText = `# ${title}\n\n## Ingredients\n${ingredients.map((ing: string) => `- ${ing}`).join('\n')}\n\n## Instructions\n${instructions.map((inst: string, idx: number) => `${idx + 1}. ${inst}`).join('\n')}`;
 
     return {
       recipeText,
@@ -132,11 +144,7 @@ export async function convertRecipeText(
   proMode: boolean
 ): Promise<string> {
   try {
-    // Use gemini-pro model for text processing
-    const textModel = genAI.getGenerativeModel({
-      model: "gemini-pro",
-      safetySettings,
-    });
+    // Already using the textModel instance
 
     // Create a prompt for the model
     let prompt = `You are a professional baker and recipe converter. Please convert the following recipe according to these specifications:
@@ -174,11 +182,7 @@ export async function getRecipeByDishName(
   dietary?: string
 ): Promise<string> {
   try {
-    // Use gemini-pro model for text processing
-    const textModel = genAI.getGenerativeModel({
-      model: "gemini-pro",
-      safetySettings,
-    });
+    // Already using the textModel instance
 
     // Create a prompt for the model
     let prompt = `You are a professional chef at PreciseBaker. Please generate a detailed recipe for "${dishName}"`;
