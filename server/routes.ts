@@ -12,8 +12,8 @@ import { extractRecipeFromImage, convertRecipeText, getRecipeByDishName, generat
 
 // Configure Express with increased payload limit
 const app = express();
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ limit: '50mb', extended: true }));
+app.use(express.json({ limit: '100mb' }));
+app.use(express.urlencoded({ limit: '100mb', extended: true }));
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const apiRouter = express.Router();
