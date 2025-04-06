@@ -324,6 +324,227 @@ ${humidityAdjust ? "**Humidity adjustment applied:** Reduced flour by 5g to acco
     }).join('\n');
   }
   
+  // Measurement Converter API
+  apiRouter.post("/convert-measurement", async (req: Request, res: Response) => {
+    try {
+      const { quantity, fromUnit, toUnit, ingredient } = req.body;
+      
+      if (!quantity || !fromUnit || !toUnit) {
+        return res.status(400).json({ 
+          message: "Missing required fields: quantity, fromUnit, or toUnit" 
+        });
+      }
+      
+      // In a real implementation, this would use Gemini AI to get precise conversions
+      // For now, we'll use a simple conversion logic with common ratios
+      
+      let result = "";
+      const numQuantity = parseFloat(quantity);
+      
+      if (isNaN(numQuantity)) {
+        return res.status(400).json({
+          message: "Invalid quantity: must be a number"
+        });
+      }
+      
+      // Simple conversion map for common units
+      const conversionRates: Record<string, Record<string, number>> = {
+        "cup": {
+          "tbsp": 16,
+          "tsp": 48,
+          "fl-oz": 8,
+          "ml": 236.6,
+          "l": 0.2366,
+          "g": ingredient ? getIngredientDensity(ingredient) * 236.6 : 236.6,
+          "kg": ingredient ? getIngredientDensity(ingredient) * 0.2366 : 0.2366,
+          "oz": ingredient ? getIngredientDensity(ingredient) * 8.33 : 8.33,
+          "lb": ingredient ? getIngredientDensity(ingredient) * 0.52 : 0.52
+        },
+        "tbsp": {
+          "cup": 0.0625,
+          "tsp": 3,
+          "fl-oz": 0.5,
+          "ml": 14.79,
+          "l": 0.01479,
+          "g": ingredient ? getIngredientDensity(ingredient) * 14.79 : 14.79,
+          "kg": ingredient ? getIngredientDensity(ingredient) * 0.01479 : 0.01479,
+          "oz": ingredient ? getIngredientDensity(ingredient) * 0.52 : 0.52,
+          "lb": ingredient ? getIngredientDensity(ingredient) * 0.0325 : 0.0325
+        },
+        "tsp": {
+          "cup": 0.0208,
+          "tbsp": 0.333,
+          "fl-oz": 0.1667,
+          "ml": 4.93,
+          "l": 0.00493,
+          "g": ingredient ? getIngredientDensity(ingredient) * 4.93 : 4.93,
+          "kg": ingredient ? getIngredientDensity(ingredient) * 0.00493 : 0.00493,
+          "oz": ingredient ? getIngredientDensity(ingredient) * 0.17 : 0.17,
+          "lb": ingredient ? getIngredientDensity(ingredient) * 0.0108 : 0.0108
+        },
+        "fl-oz": {
+          "cup": 0.125,
+          "tbsp": 2,
+          "tsp": 6,
+          "ml": 29.57,
+          "l": 0.02957,
+          "g": ingredient ? getIngredientDensity(ingredient) * 29.57 : 29.57,
+          "kg": ingredient ? getIngredientDensity(ingredient) * 0.02957 : 0.02957,
+          "oz": ingredient ? getIngredientDensity(ingredient) * 1.043 : 1.043,
+          "lb": ingredient ? getIngredientDensity(ingredient) * 0.065 : 0.065
+        },
+        "ml": {
+          "cup": 0.00423,
+          "tbsp": 0.0676,
+          "tsp": 0.203,
+          "fl-oz": 0.0338,
+          "l": 0.001,
+          "g": ingredient ? getIngredientDensity(ingredient) : 1,
+          "kg": ingredient ? getIngredientDensity(ingredient) * 0.001 : 0.001,
+          "oz": ingredient ? getIngredientDensity(ingredient) * 0.0353 : 0.0353,
+          "lb": ingredient ? getIngredientDensity(ingredient) * 0.0022 : 0.0022
+        },
+        "l": {
+          "cup": 4.227,
+          "tbsp": 67.628,
+          "tsp": 202.9,
+          "fl-oz": 33.814,
+          "ml": 1000,
+          "g": ingredient ? getIngredientDensity(ingredient) * 1000 : 1000,
+          "kg": ingredient ? getIngredientDensity(ingredient) : 1,
+          "oz": ingredient ? getIngredientDensity(ingredient) * 35.274 : 35.274,
+          "lb": ingredient ? getIngredientDensity(ingredient) * 2.205 : 2.205
+        },
+        "g": {
+          "cup": ingredient ? 1 / (getIngredientDensity(ingredient) * 236.6) : 0.00423,
+          "tbsp": ingredient ? 1 / (getIngredientDensity(ingredient) * 14.79) : 0.0676,
+          "tsp": ingredient ? 1 / (getIngredientDensity(ingredient) * 4.93) : 0.203,
+          "fl-oz": ingredient ? 1 / (getIngredientDensity(ingredient) * 29.57) : 0.0338,
+          "ml": ingredient ? 1 / getIngredientDensity(ingredient) : 1,
+          "l": ingredient ? 1 / (getIngredientDensity(ingredient) * 1000) : 0.001,
+          "kg": 0.001,
+          "oz": 0.0353,
+          "lb": 0.0022
+        },
+        "kg": {
+          "cup": ingredient ? 1 / (getIngredientDensity(ingredient) * 0.2366) : 4.23,
+          "tbsp": ingredient ? 1 / (getIngredientDensity(ingredient) * 0.01479) : 67.628,
+          "tsp": ingredient ? 1 / (getIngredientDensity(ingredient) * 0.00493) : 202.9,
+          "fl-oz": ingredient ? 1 / (getIngredientDensity(ingredient) * 0.02957) : 33.814,
+          "ml": ingredient ? 1 / (getIngredientDensity(ingredient) * 0.001) : 1000,
+          "l": ingredient ? 1 / getIngredientDensity(ingredient) : 1,
+          "g": 1000,
+          "oz": 35.274,
+          "lb": 2.205
+        },
+        "oz": {
+          "cup": ingredient ? 1 / (getIngredientDensity(ingredient) * 8.33) : 0.12,
+          "tbsp": ingredient ? 1 / (getIngredientDensity(ingredient) * 0.52) : 1.917,
+          "tsp": ingredient ? 1 / (getIngredientDensity(ingredient) * 0.17) : 5.75,
+          "fl-oz": ingredient ? 1 / (getIngredientDensity(ingredient) * 1.043) : 0.958,
+          "ml": ingredient ? 1 / (getIngredientDensity(ingredient) * 0.0353) : 28.35,
+          "l": ingredient ? 1 / (getIngredientDensity(ingredient) * 35.274) : 0.02835,
+          "g": 28.35,
+          "kg": 0.02835,
+          "lb": 0.0625
+        },
+        "lb": {
+          "cup": ingredient ? 1 / (getIngredientDensity(ingredient) * 0.52) : 1.92,
+          "tbsp": ingredient ? 1 / (getIngredientDensity(ingredient) * 0.0325) : 30.68,
+          "tsp": ingredient ? 1 / (getIngredientDensity(ingredient) * 0.0108) : 92.04,
+          "fl-oz": ingredient ? 1 / (getIngredientDensity(ingredient) * 0.065) : 15.34,
+          "ml": ingredient ? 1 / (getIngredientDensity(ingredient) * 0.0022) : 453.6,
+          "l": ingredient ? 1 / (getIngredientDensity(ingredient) * 2.205) : 0.4536,
+          "g": 453.6,
+          "kg": 0.4536,
+          "oz": 16
+        },
+        "pinch": {
+          "tsp": 0.125,
+          "g": 0.36
+        },
+        "dash": {
+          "tsp": 0.0625,
+          "ml": 0.308
+        }
+      };
+      
+      // Convert from one unit to another
+      if (fromUnit === toUnit) {
+        result = `${numQuantity} ${toUnit}`;
+      } else if (conversionRates[fromUnit] && conversionRates[fromUnit][toUnit]) {
+        const converted = numQuantity * conversionRates[fromUnit][toUnit];
+        result = `${numQuantity} ${fromUnit} = ${converted.toFixed(2)} ${toUnit}`;
+        
+        if (ingredient) {
+          result += ` of ${ingredient}`;
+        }
+      } else {
+        return res.status(400).json({
+          message: "Conversion between these units is not supported"
+        });
+      }
+      
+      // Save the conversion to history if needed
+      // This would be implemented with user authentication in production
+      
+      return res.json({ 
+        result,
+        success: true 
+      });
+    } catch (error) {
+      console.error("Error in convert-measurement endpoint:", error);
+      return res.status(500).json({ 
+        message: "Failed to convert measurement",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+  
+  // Helper function to get approximate density for common ingredients
+  function getIngredientDensity(ingredient: string): number {
+    // Ingredient density in g/ml (approximate values)
+    const densities: Record<string, number> = {
+      "flour": 0.6,
+      "all-purpose flour": 0.6,
+      "bread flour": 0.6,
+      "cake flour": 0.5,
+      "sugar": 0.85,
+      "granulated sugar": 0.85, 
+      "brown sugar": 0.82,
+      "powdered sugar": 0.56,
+      "salt": 1.23,
+      "baking powder": 0.9,
+      "baking soda": 0.92,
+      "butter": 0.96,
+      "oil": 0.92,
+      "olive oil": 0.92,
+      "milk": 1.03,
+      "water": 1,
+      "honey": 1.42,
+      "maple syrup": 1.32,
+      "rice": 0.78,
+      "oats": 0.41,
+      "cocoa powder": 0.53,
+      "chocolate chips": 0.68
+    };
+    
+    // Default density if ingredient not found
+    const defaultDensity = 0.8;
+    
+    // Convert ingredient to lowercase for case-insensitive search
+    const lowerIngredient = ingredient.toLowerCase();
+    
+    // Check if the ingredient exists in our densities map
+    for (const key in densities) {
+      if (lowerIngredient.includes(key)) {
+        return densities[key];
+      }
+    }
+    
+    return defaultDensity;
+  }
+  
   // Mount the API router
   app.use("/api", apiRouter);
   
