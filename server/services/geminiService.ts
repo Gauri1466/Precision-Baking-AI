@@ -32,7 +32,7 @@ const safetySettings = [
 
 // Get the Gemini Pro Vision model (for image processing)
 const visionModel = genAI.getGenerativeModel({
-  model: "gemini-1.5-pro-vision-latest",
+  model: "gemini-pro-vision",
   safetySettings,
 });
 
