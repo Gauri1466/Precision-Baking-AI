@@ -3,7 +3,10 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChefHat, Scale, Camera, Receipt, ArrowRight, UtensilsCrossed, Sparkles } from "lucide-react";
+import { 
+  ChefHat, Scale, Camera, Receipt, ArrowRight, UtensilsCrossed, Sparkles,
+  Utensils, Cookie, Cake, Egg, Apple, Croissant, Sandwich, Soup, Gauge, Wheat
+} from "lucide-react";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 
@@ -25,19 +28,30 @@ export default function Home() {
     <UtensilsCrossed className="text-amber-500" />,
     <Receipt className="text-green-500" />,
     <Camera className="text-purple-500" />,
-    <Sparkles className="text-pink-500" />
+    <Sparkles className="text-pink-500" />,
+    <Utensils className="text-red-500" />,
+    <Cookie className="text-yellow-600" />,
+    <Cake className="text-pink-400" />,
+    <Egg className="text-gray-300" />,
+    <Apple className="text-red-400" />,
+    <Croissant className="text-yellow-500" />,
+    <Sandwich className="text-amber-400" />,
+    <Soup className="text-orange-500" />,
+    <Gauge className="text-blue-400" />,
+    <Wheat className="text-yellow-400" />
   ];
 
   // Generate floating elements on mount
   useEffect(() => {
     const elements = [];
-    for (let i = 0; i < 15; i++) {
+    // Create more elements for a fuller background
+    for (let i = 0; i < 30; i++) {
       elements.push({
         id: i,
-        x: Math.random() * 100,
-        y: Math.random() * 100,
+        x: Math.random() * 100, // Distribute across the entire width
+        y: Math.random() * 100, // Distribute across the entire height
         rotation: Math.random() * 360,
-        scale: 0.5 + Math.random() * 1.5,
+        scale: 0.3 + Math.random() * 1.2, // Make some smaller for better layering
         icon: Math.floor(Math.random() * icons.length)
       });
     }
@@ -76,25 +90,28 @@ export default function Home() {
   return (
     <>
       {/* Floating background elements */}
-      <div className="fixed inset-0 -z-10 overflow-hidden">
+      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
         {floatingElements.map((el) => (
           <motion.div
             key={el.id}
-            className="absolute opacity-10"
+            className="absolute opacity-10 select-none"
             style={{ 
               left: `${el.x}%`, 
               top: `${el.y}%`,
-              fontSize: `${el.scale * 30}px`
+              fontSize: `${el.scale * 35}px`
             }}
             animate={{
-              x: [0, Math.random() * 40 - 20, 0],
-              y: [0, Math.random() * 40 - 20, 0],
+              x: [0, Math.random() * 60 - 30, 0],
+              y: [0, Math.random() * 60 - 30, 0],
               rotate: [0, el.rotation, 0],
+              scale: [1, 1 + Math.random() * 0.3, 1],
+              opacity: [0.08, 0.15, 0.08]
             }}
             transition={{
-              duration: 15 + Math.random() * 10,
+              duration: 15 + Math.random() * 15,
               repeat: Infinity,
-              ease: "easeInOut"
+              ease: "easeInOut",
+              repeatType: "mirror"
             }}
           >
             {icons[el.icon]}
