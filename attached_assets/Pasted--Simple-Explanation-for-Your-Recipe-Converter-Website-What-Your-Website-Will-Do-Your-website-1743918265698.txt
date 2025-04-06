@@ -1,0 +1,69 @@
+# Simple Explanation for Your Recipe Converter Website
+
+## What Your Website Will Do
+Your website will help bakers measure ingredients perfectly every time by turning vague measurements like "1 cup of flour" into exact weights like "120 grams."
+
+## Main Parts of the Website
+
+### 1. The Converter Tool
+- Has a big list of ingredients and how heavy they are
+- Can read recipes you copy/paste or upload
+- Changes cups/spoons to grams automatically
+- Can make recipes bigger or smaller (for more or fewer people)
+
+### 2. Easy-to-Use Features
+- Type in recipes by hand if you want
+- Save your favorite converted recipes if you make an account
+- Print or save the converted recipes neatly
+
+### 3. Smart Extras
+- Knows different types of ingredients (like brown sugar vs white sugar)
+- Can adjust for humid days when flour weighs differently
+- Has a pro mode for bakery workers
+- Suggests ingredient swaps with correct measurements
+
+## How to Build It
+
+### What Users See (Frontend)
+- Clean, simple screens with big buttons
+- Instant results when you type measurements
+- A place to upload recipe photos
+- Your saved recipes in one place
+
+### Behind the Scenes (Backend)
+- Computer brains that understand recipe words
+- A big ingredient dictionary with weights
+- User accounts to remember your recipes
+- Can read recipes from photos (advanced)
+
+## Step-by-Step Building Plan
+
+**First Version (Simple):**
+1. Basic converter for common ingredients
+2. Type-in-your-recipe screen
+3. Simple text recipe reader
+4. Sign-up/login for users
+
+**Second Version (Better):**
+1. Read recipes from photos
+2. More ingredient options
+3. Change recipe sizes
+4. Phone app version
+
+**Pro Version:**
+1. Special tools for bakeries
+2. Adjusts for weather
+3. Team accounts
+4. Works with kitchen scales
+
+## Ways to Make Money
+- Free basic tool, pay for fancy features
+- Special accounts for bakeries
+- Recommend good baking tools (get commission)
+- Sell your converter tech to other companies
+
+## Why Your Site is Better
+- More accurate than simple charts
+- Works with ALL ingredients, not just common ones
+- Understands messy recipes like a human would
+- Has special tools real bakers need
