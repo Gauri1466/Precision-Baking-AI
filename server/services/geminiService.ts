@@ -60,8 +60,8 @@ export async function extractRecipeFromImage(base64Image: string): Promise<Photo
     // Prepare the image data
     const imageData = {
       inlineData: {
-        data: base64Image.replace(/^data:image\/(png|jpeg|jpg);base64,/, ''),
-        mimeType: base64Image.startsWith('data:image/png') ? 'image/png' : 'image/jpeg',
+        data: base64Image.includes('base64,') ? base64Image.split('base64,')[1] : base64Image,
+        mimeType: base64Image.includes('image/png') ? 'image/png' : 'image/jpeg',
       },
     };
 
