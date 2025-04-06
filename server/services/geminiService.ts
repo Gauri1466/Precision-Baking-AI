@@ -160,3 +160,55 @@ export async function convertRecipeText(
     throw new Error('Failed to convert recipe');
   }
 }
+
+/**
+ * Generates a recipe based on a dish name
+ * @param dishName - The name of the dish to generate a recipe for
+ * @param cuisine - Optional cuisine type
+ * @param dietary - Optional dietary restrictions
+ * @returns Complete recipe text
+ */
+export async function getRecipeByDishName(
+  dishName: string,
+  cuisine?: string,
+  dietary?: string
+): Promise<string> {
+  try {
+    // Use gemini-pro model for text processing
+    const textModel = genAI.getGenerativeModel({
+      model: "gemini-pro",
+      safetySettings,
+    });
+
+    // Create a prompt for the model
+    let prompt = `You are a professional chef at PreciseBaker. Please generate a detailed recipe for "${dishName}"`;
+    
+    if (cuisine) {
+      prompt += ` in the ${cuisine} style`;
+    }
+    
+    if (dietary) {
+      prompt += ` that is ${dietary}`;
+    }
+    
+    prompt += `.
+
+    Your recipe should include:
+    1. A descriptive title
+    2. A brief introduction to the dish
+    3. Precise ingredient measurements in both volume (cups, tablespoons) and weight (grams)
+    4. Clear, step-by-step instructions
+    5. Cooking time and servings
+    6. Optional tips for perfect results
+    
+    Format your response as a complete recipe with markdown formatting. Make sure all measurements are precise and accurate.`;
+
+    // Generate content with the model
+    const result = await textModel.generateContent(prompt);
+    const response = await result.response;
+    return response.text();
+  } catch (error) {
+    console.error('Error generating recipe with Gemini:', error);
+    throw new Error('Failed to generate recipe');
+  }
+}

@@ -8,7 +8,7 @@ import {
   insertConversionHistorySchema 
 } from "@shared/schema";
 import { z } from "zod";
-import { extractRecipeFromImage, convertRecipeText } from "./services/geminiService";
+import { extractRecipeFromImage, convertRecipeText, getRecipeByDishName } from "./services/geminiService";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const apiRouter = express.Router();
@@ -544,6 +544,45 @@ ${humidityAdjust ? "**Humidity adjustment applied:** Reduced flour by 5g to acco
     
     return defaultDensity;
   }
+  
+  // Recipe by dish name API endpoint
+  apiRouter.post("/recipe-by-dish", async (req: Request, res: Response) => {
+    try {
+      const { dishName, cuisine, dietary } = req.body;
+      
+      if (!dishName) {
+        return res.status(400).json({ 
+          message: "Missing required field: dishName" 
+        });
+      }
+      
+      // Use Gemini AI to generate a recipe based on the dish name
+      try {
+        const recipeText = await getRecipeByDishName(
+          dishName,
+          cuisine,
+          dietary
+        );
+        
+        res.json({ 
+          recipeText,
+          success: true 
+        });
+      } catch (aiError) {
+        console.error("Gemini AI recipe generation error:", aiError);
+        return res.status(500).json({
+          message: "Failed to generate recipe using AI",
+          error: aiError instanceof Error ? aiError.message : "Unknown AI error"
+        });
+      }
+    } catch (error) {
+      console.error("Error in recipe-by-dish endpoint:", error);
+      return res.status(500).json({ 
+        message: "Failed to generate recipe",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
   
   // Mount the API router
   app.use("/api", apiRouter);

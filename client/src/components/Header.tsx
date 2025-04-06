@@ -1,6 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ChefHat, Scale, Home } from "lucide-react";
+import { ChefHat, Scale, Home, BarChart3 } from "lucide-react";
 
 export default function Header() {
   const [location] = useLocation();
@@ -9,21 +8,17 @@ export default function Header() {
     <header className="mb-8">
       <div className="flex flex-col items-center">
         <div className="relative w-20 h-20 rounded-full overflow-hidden border-4 border-primary mb-4">
-          <Avatar className="w-full h-full">
-            <AvatarImage 
-              src="https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&h=200&q=80" 
-              alt="Profile Picture" 
-            />
-            <AvatarFallback className="text-2xl bg-primary/20 text-primary">RC</AvatarFallback>
-          </Avatar>
+          <div className="w-full h-full bg-primary/10 flex items-center justify-center">
+            <Scale className="w-12 h-12 text-primary" />
+          </div>
         </div>
         <Link href="/">
           <h1 className="font-heading text-3xl font-bold text-center mb-2 hover:opacity-90 transition-opacity cursor-pointer">
-            Recipe Converter
+            PreciseBaker
           </h1>
         </Link>
         <p className="text-center text-gray-700 max-w-md mb-6">
-          Perfect measurements for perfect cooking results, powered by AI
+          Perfect measurements for perfect baking results, powered by AI
         </p>
       </div>
       

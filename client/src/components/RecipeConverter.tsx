@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import IngredientTable from "./IngredientTable";
-import { Loader2, Copy, CheckCircle2, Upload, Camera, Image } from "lucide-react";
+import { Loader2, Copy, CheckCircle2, Upload, Camera, Image, ChefHat } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function RecipeConverter() {
@@ -23,6 +23,8 @@ export default function RecipeConverter() {
   const [isCopied, setIsCopied] = useState(false);
   const [activeTab, setActiveTab] = useState("text-input");
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [cuisineType, setCuisineType] = useState("any");
+  const [dietaryRestrictions, setDietaryRestrictions] = useState("none");
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Text-based recipe conversion mutation
@@ -53,26 +55,33 @@ export default function RecipeConverter() {
       const response = await apiRequest("POST", "/api/photo-to-recipe", { image: imageData });
       return response.json();
     },
+  });
+  
+  // Recipe by dish name mutation
+  const recipeByDishMutation = useMutation({
+    mutationFn: async (data: { dishName: string; cuisine: string; dietary: string }) => {
+      const response = await apiRequest("POST", "/api/recipe-by-dish", data);
+      return response.json();
+    },
     onSuccess: (data) => {
       if (data.success) {
-        setRecipeInput(data.recipeText);
-        setActiveTab("text-input"); // Switch to text tab to show the extracted recipe
+        setConvertedResult(data.recipeText);
         toast({
-          title: "Recipe Extracted",
-          description: "Recipe successfully extracted from image. You can now adjust and convert it.",
+          title: "Recipe Generated",
+          description: "Recipe successfully generated for your dish",
         });
       } else {
         toast({
-          title: "Extraction Failed",
-          description: data.error || "Failed to extract recipe from image",
+          title: "Generation Failed",
+          description: data.error || "Failed to generate recipe for dish",
           variant: "destructive",
         });
       }
     },
     onError: (error) => {
       toast({
-        title: "Image Processing Failed",
-        description: error instanceof Error ? error.message : "Failed to process image",
+        title: "Recipe Generation Failed",
+        description: error instanceof Error ? error.message : "Failed to generate recipe",
         variant: "destructive",
       });
     },
@@ -154,6 +163,24 @@ export default function RecipeConverter() {
   const triggerFileInput = () => {
     fileInputRef.current?.click();
   };
+  
+  // Handle dish name search
+  const handleDishNameSearch = () => {
+    if (!recipeInput.trim()) {
+      toast({
+        title: "Input Required",
+        description: "Please enter a dish name to generate a recipe",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    recipeByDishMutation.mutate({
+      dishName: recipeInput,
+      cuisine: cuisineType,
+      dietary: dietaryRestrictions
+    });
+  };
 
   return (
     <div>
@@ -166,7 +193,7 @@ export default function RecipeConverter() {
           
           {/* Input Method Tabs */}
           <Tabs defaultValue="text-input" value={activeTab} onValueChange={setActiveTab} className="mb-6">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="text-input" className="flex items-center justify-center">
                 <span className="flex items-center">
                   <Upload className="h-4 w-4 mr-2" />
@@ -177,6 +204,12 @@ export default function RecipeConverter() {
                 <span className="flex items-center">
                   <Camera className="h-4 w-4 mr-2" />
                   Photo to Recipe
+                </span>
+              </TabsTrigger>
+              <TabsTrigger value="dish-input" className="flex items-center justify-center">
+                <span className="flex items-center">
+                  <ChefHat className="h-4 w-4 mr-2" />
+                  Dish Name
                 </span>
               </TabsTrigger>
             </TabsList>
@@ -351,6 +384,101 @@ export default function RecipeConverter() {
                     <>
                       <Camera className="mr-2 h-4 w-4" />
                       Extract Recipe from Photo
+                    </>
+                  )}
+                </Button>
+              </div>
+            </TabsContent>
+            
+            {/* Dish Name Input Tab */}
+            <TabsContent value="dish-input">
+              <div className="mb-6">
+                <Label htmlFor="dish-name" className="block text-sm font-medium mb-2">
+                  Enter a Dish Name
+                </Label>
+                <div className="space-y-4">
+                  <Textarea
+                    id="dish-name"
+                    className="resize-y"
+                    placeholder="Enter a dish name (e.g., Chocolate Chip Cookies, Beef Stroganoff)..."
+                    value={recipeInput}
+                    onChange={(e) => setRecipeInput(e.target.value)}
+                  />
+                  
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="cuisine-type" className="block text-sm font-medium mb-2">
+                        Cuisine Type (Optional)
+                      </Label>
+                      <Select 
+                        value={cuisineType} 
+                        onValueChange={setCuisineType}
+                      >
+                        <SelectTrigger id="cuisine-type">
+                          <SelectValue placeholder="Select cuisine type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="any">Any Cuisine</SelectItem>
+                          <SelectItem value="italian">Italian</SelectItem>
+                          <SelectItem value="french">French</SelectItem>
+                          <SelectItem value="mexican">Mexican</SelectItem>
+                          <SelectItem value="chinese">Chinese</SelectItem>
+                          <SelectItem value="indian">Indian</SelectItem>
+                          <SelectItem value="thai">Thai</SelectItem>
+                          <SelectItem value="japanese">Japanese</SelectItem>
+                          <SelectItem value="mediterranean">Mediterranean</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="dietary-restrictions" className="block text-sm font-medium mb-2">
+                        Dietary Restrictions (Optional)
+                      </Label>
+                      <Select 
+                        value={dietaryRestrictions} 
+                        onValueChange={setDietaryRestrictions}
+                      >
+                        <SelectTrigger id="dietary-restrictions">
+                          <SelectValue placeholder="Select restrictions" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">No Restrictions</SelectItem>
+                          <SelectItem value="vegetarian">Vegetarian</SelectItem>
+                          <SelectItem value="vegan">Vegan</SelectItem>
+                          <SelectItem value="gluten-free">Gluten-Free</SelectItem>
+                          <SelectItem value="dairy-free">Dairy-Free</SelectItem>
+                          <SelectItem value="keto">Keto</SelectItem>
+                          <SelectItem value="paleo">Paleo</SelectItem>
+                          <SelectItem value="low-carb">Low Carb</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="mb-6">
+                <p className="text-sm text-gray-600 mb-4">
+                  Our AI will generate a complete recipe based on the dish name you provide. You can
+                  specify cuisine type and dietary restrictions for more tailored results.
+                </p>
+                
+                <Button 
+                  type="button" 
+                  className="bg-primary hover:bg-primary/90 text-white w-full"
+                  disabled={!recipeInput.trim() || recipeByDishMutation.isPending}
+                  onClick={handleDishNameSearch}
+                >
+                  {recipeByDishMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Generating Recipe...
+                    </>
+                  ) : (
+                    <>
+                      <ChefHat className="mr-2 h-4 w-4" />
+                      Generate Recipe
                     </>
                   )}
                 </Button>
