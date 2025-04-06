@@ -8,6 +8,7 @@ import {
   insertConversionHistorySchema 
 } from "@shared/schema";
 import { z } from "zod";
+import { extractRecipeFromImage, convertRecipeText } from "./services/geminiService";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const apiRouter = express.Router();
@@ -182,24 +183,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // This would be replaced with actual Gemini AI call in a production environment
-      // For now, we'll return a mock response based on the input
-      const convertedRecipe = `
+      // Use Gemini AI to convert the recipe
+      try {
+        const convertedRecipe = await convertRecipeText(
+          recipeText,
+          conversionType,
+          scaleFactor,
+          !!humidityAdjust,
+          !!proMode
+        );
+        
+        // Save to conversion history if user is logged in
+        // This would be implemented with actual user authentication in production
+        
+        res.json({ 
+          convertedRecipe,
+          success: true 
+        });
+      } catch (aiError) {
+        console.error("Gemini AI conversion error:", aiError);
+        
+        // Fallback to basic conversion when AI fails
+        const convertedRecipe = `
 ## ${recipeText.split('\n')[0] || "Converted Recipe"}
 
-${generateConvertedIngredients(conversionType, scaleFactor, humidityAdjust)}
+${generateConvertedIngredients(conversionType, scaleFactor, !!humidityAdjust)}
 
 ${proMode ? "**Professional Baker Notes:** For optimal results, maintain dough temperature between 68-72°F during mixing. Final hydration should be 65-68% depending on flour protein content." : ""}
 ${humidityAdjust ? "**Humidity adjustment applied:** Reduced flour by 5g to account for high humidity." : ""}
-      `;
-      
-      // Save to conversion history if user is logged in
-      // This would be implemented with actual user authentication in production
-      
-      res.json({ 
-        convertedRecipe,
-        success: true 
-      });
+        `;
+        
+        res.json({ 
+          convertedRecipe,
+          success: true,
+          note: "Used basic conversion due to AI service error."
+        });
+      }
     } catch (error) {
       res.status(500).json({ 
         message: "Failed to convert recipe", 
@@ -208,11 +227,51 @@ ${humidityAdjust ? "**Humidity adjustment applied:** Reduced flour by 5g to acco
     }
   });
   
-  // Helper function to generate mock converted ingredients based on the requested conversion
+  // Photo to Recipe using Gemini Vision AI
+  apiRouter.post("/photo-to-recipe", async (req: Request, res: Response) => {
+    try {
+      const { image } = req.body;
+      
+      if (!image || typeof image !== 'string') {
+        return res.status(400).json({ 
+          message: "Missing or invalid image data. Please provide a base64-encoded image."
+        });
+      }
+      
+      // Process the image with Gemini Vision AI
+      const result = await extractRecipeFromImage(image);
+      
+      if (!result.success) {
+        return res.status(500).json({
+          message: "Failed to extract recipe from image",
+          error: result.error
+        });
+      }
+      
+      // Return the extracted recipe information
+      res.json(result);
+    } catch (error) {
+      console.error("Error in photo-to-recipe endpoint:", error);
+      res.status(500).json({ 
+        message: "Failed to process image",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+  
+  // Helper function to generate basic converted ingredients based on the requested conversion
   function generateConvertedIngredients(conversionType: string, scaleFactor: string, humidityAdjust: boolean) {
     const factor = Number(scaleFactor) || 1;
     
-    const ingredientsList = [
+    // Define the complete ingredient type
+    type Ingredient = {
+      name: string;
+      cup?: string;
+      tsp?: string;
+      gram: string;
+    };
+    
+    const ingredientsList: Ingredient[] = [
       { name: "all-purpose flour", cup: "2 cups", gram: "240g" },
       { name: "granulated sugar", cup: "1 cup", gram: "200g" },
       { name: "brown sugar, packed", cup: "1 cup", gram: "220g" },
@@ -223,18 +282,44 @@ ${humidityAdjust ? "**Humidity adjustment applied:** Reduced flour by 5g to acco
     ];
     
     return ingredientsList.map(ing => {
-      let amount;
-      let originalAmount;
+      let amount: number;
+      let originalAmount: string;
+      let unit: string;
       
       if (conversionType === 'cup-to-gram') {
-        amount = parseInt(ing.gram) * factor;
-        originalAmount = ing.cup;
-        return `- **${amount}g** ${ing.name} (${originalAmount})`;
+        // Convert from cup to gram
+        amount = parseInt(ing.gram.replace('g', '')) * factor;
+        originalAmount = ing.cup || ing.tsp || '';
+        unit = 'g';
       } else {
-        const cupAmount = ing.cup.split(' ')[0];
-        amount = parseFloat(cupAmount) * factor;
+        // Convert from gram to cup/tsp
+        let volumeMeasure = '';
+        let volumeUnit = '';
+        
+        if (ing.cup) {
+          volumeMeasure = ing.cup;
+          volumeUnit = 'cup';
+        } else if (ing.tsp) {
+          volumeMeasure = ing.tsp;
+          volumeUnit = 'tsp';
+        } else {
+          volumeMeasure = '0 cup';
+          volumeUnit = 'cup';
+        }
+        
+        const measureParts = volumeMeasure.split(' ');
+        const measureAmount = measureParts[0];
+        unit = measureParts.length > 1 ? measureParts[1] : volumeUnit;
+        
+        amount = parseFloat(measureAmount) * factor;
         originalAmount = ing.gram;
-        return `- **${amount} ${ing.cup.split(' ')[1]}** ${ing.name} (${originalAmount})`;
+      }
+      
+      // Format the final string based on conversion type
+      if (conversionType === 'cup-to-gram') {
+        return `- **${amount}${unit}** ${ing.name} (${originalAmount})`;
+      } else {
+        return `- **${amount} ${unit}** ${ing.name} (${originalAmount})`;
       }
     }).join('\n');
   }
