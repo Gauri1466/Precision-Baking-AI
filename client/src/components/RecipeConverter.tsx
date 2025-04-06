@@ -220,25 +220,27 @@ export default function RecipeConverter() {
             Convert vague measurements like "1 cup of flour" into exact weights like "120 grams" for perfect results every time.
           </p>
           
-          {/* Input Method Tabs */}
+          {/* Input Method Tabs - Responsive for all screen sizes */}
           <Tabs defaultValue="text-input" value={activeTab} onValueChange={setActiveTab} className="mb-6">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="text-input" className="flex items-center justify-center">
+            <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3">
+              <TabsTrigger value="text-input" className="flex items-center justify-center py-3 sm:py-2">
                 <span className="flex items-center">
                   <Upload className="h-4 w-4 mr-2" />
-                  Generate or Convert
+                  <span className="hidden sm:inline">Generate or Convert</span>
+                  <span className="sm:hidden">Text Input</span>
                 </span>
               </TabsTrigger>
-              <TabsTrigger value="photo-input" className="flex items-center justify-center">
+              <TabsTrigger value="photo-input" className="flex items-center justify-center py-3 sm:py-2">
                 <span className="flex items-center">
                   <Camera className="h-4 w-4 mr-2" />
-                  Photo to Recipe
+                  <span>Photo to Recipe</span>
                 </span>
               </TabsTrigger>
-              <TabsTrigger value="dish-input" className="flex items-center justify-center">
+              <TabsTrigger value="dish-input" className="flex items-center justify-center py-3 sm:py-2">
                 <span className="flex items-center">
                   <ChefHat className="h-4 w-4 mr-2" />
-                  Generate by Dish Name
+                  <span className="hidden sm:inline">Generate by Dish Name</span>
+                  <span className="sm:hidden">Dish Search</span>
                 </span>
               </TabsTrigger>
             </TabsList>
@@ -246,39 +248,39 @@ export default function RecipeConverter() {
             {/* Text Input Tab */}
             <TabsContent value="text-input">
               <form onSubmit={handleConversion}>
-                <div className="mb-6">
-                  <Label htmlFor="recipe-input" className="block text-sm font-medium mb-2">
+                <div className="mb-4 sm:mb-6">
+                  <Label htmlFor="recipe-input" className="block text-sm font-medium mb-1 sm:mb-2">
                     Enter Ingredients or Recipe
                   </Label>
-                  <div className="text-xs text-gray-500 mb-2">
+                  <div className="text-[10px] sm:text-xs text-gray-500 mb-1 sm:mb-2">
                     <p>Our AI can:</p>
-                    <ul className="list-disc pl-5 mt-1 mb-2 space-y-1">
+                    <ul className="list-disc pl-4 sm:pl-5 mt-1 mb-1 sm:mb-2 space-y-[2px] sm:space-y-1">
                       <li>Generate a complete recipe from a list of ingredients</li>
                       <li>Convert measurements in an existing recipe (cup → gram or gram → cup)</li>
                     </ul>
                   </div>
                   <Textarea
                     id="recipe-input"
-                    className="min-h-[150px] resize-y"
+                    className="min-h-[100px] sm:min-h-[150px] resize-y text-xs sm:text-sm"
                     placeholder="Enter ingredients (one per line) or paste a complete recipe to convert..."
                     value={recipeInput}
                     onChange={(e) => setRecipeInput(e.target.value)}
                   />
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-[10px] sm:text-xs text-gray-500 mt-1">
                     Our AI detects whether you've entered ingredients or a recipe and processes accordingly.
                   </p>
                 </div>
                 
-                <div className="grid md:grid-cols-2 gap-4 mb-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
                   <div>
-                    <Label htmlFor="conversion-type" className="block text-sm font-medium mb-2">
+                    <Label htmlFor="conversion-type" className="block text-sm font-medium mb-1 sm:mb-2">
                       Conversion Type
                     </Label>
                     <Select 
                       value={conversionType} 
                       onValueChange={setConversionType}
                     >
-                      <SelectTrigger id="conversion-type">
+                      <SelectTrigger id="conversion-type" className="h-9 sm:h-10 text-xs sm:text-sm">
                         <SelectValue placeholder="Select conversion type" />
                       </SelectTrigger>
                       <SelectContent>
@@ -294,7 +296,7 @@ export default function RecipeConverter() {
                   </div>
                   
                   <div>
-                    <Label htmlFor="scale-factor" className="block text-sm font-medium mb-2">
+                    <Label htmlFor="scale-factor" className="block text-sm font-medium mb-1 sm:mb-2">
                       Scale Recipe
                     </Label>
                     <Select 
@@ -308,7 +310,7 @@ export default function RecipeConverter() {
                         }
                       }}
                     >
-                      <SelectTrigger id="scale-factor">
+                      <SelectTrigger id="scale-factor" className="h-9 sm:h-10 text-xs sm:text-sm">
                         <SelectValue placeholder="Select scale factor" />
                       </SelectTrigger>
                       <SelectContent>
@@ -322,13 +324,13 @@ export default function RecipeConverter() {
                   </div>
                 </div>
                 
-                {/* Custom scale factor input */}
+                {/* Custom scale factor input - Responsive */}
                 {showCustomScale && (
-                  <div className="mb-4">
-                    <Label htmlFor="custom-scale-factor" className="block text-sm font-medium mb-2">
+                  <div className="mb-3 sm:mb-4">
+                    <Label htmlFor="custom-scale-factor" className="block text-sm font-medium mb-1 sm:mb-2">
                       Enter Custom Scale Factor
                     </Label>
-                    <div className="flex gap-4">
+                    <div className="flex gap-2 sm:gap-4">
                       <Input
                         id="custom-scale-factor"
                         type="number"
@@ -341,11 +343,12 @@ export default function RecipeConverter() {
                           setCustomScaleFactor(value);
                           // Don't update scaleFactor here, we'll use customScaleFactor directly in handleConversion
                         }}
-                        className="w-32"
+                        className="w-24 sm:w-32 h-9 sm:h-10 text-xs sm:text-sm"
                       />
                       <Button 
                         type="button"
                         variant="outline"
+                        className="h-9 sm:h-10 text-xs sm:text-sm"
                         onClick={() => {
                           if (parseFloat(customScaleFactor) > 0) {
                             setScaleFactor(customScaleFactor);
@@ -366,31 +369,33 @@ export default function RecipeConverter() {
                         Apply
                       </Button>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-[10px] sm:text-xs text-gray-500 mt-1">
                       Enter a value like 1.25 (for 1.25x) or 0.75 (for 3/4 sized recipe)
                     </p>
                   </div>
                 )}
 
-                <div className="flex flex-wrap gap-4 mb-6">
-                  <div className="flex items-center space-x-2">
+                <div className="flex flex-wrap gap-3 sm:gap-4 mb-4 sm:mb-6">
+                  <div className="flex items-center space-x-1 sm:space-x-2">
                     <Checkbox 
                       id="humidity-adjust" 
                       checked={humidityAdjust}
                       onCheckedChange={(checked) => setHumidityAdjust(checked as boolean)}
+                      className="h-3 w-3 sm:h-4 sm:w-4"
                     />
-                    <Label htmlFor="humidity-adjust" className="text-sm">
+                    <Label htmlFor="humidity-adjust" className="text-xs sm:text-sm">
                       Adjust for Humidity
                     </Label>
                   </div>
                   
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-1 sm:space-x-2">
                     <Checkbox 
                       id="pro-mode" 
                       checked={proMode}
                       onCheckedChange={(checked) => setProMode(checked as boolean)}
+                      className="h-3 w-3 sm:h-4 sm:w-4"
                     />
-                    <Label htmlFor="pro-mode" className="text-sm">
+                    <Label htmlFor="pro-mode" className="text-xs sm:text-sm">
                       Professional Baker Mode
                     </Label>
                   </div>
@@ -398,22 +403,26 @@ export default function RecipeConverter() {
                 
                 <Button 
                   type="submit" 
-                  className="bg-primary hover:bg-primary/90 text-white"
+                  className="bg-primary hover:bg-primary/90 text-white w-full sm:w-auto py-2 sm:py-4 h-auto"
                   disabled={convertMutation.isPending}
                 >
                   {convertMutation.isPending ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Generating Recipe...
+                      <span className="hidden sm:inline">Generating Recipe...</span>
+                      <span className="sm:hidden">Generating...</span>
                     </>
                   ) : (
-                    "Generate or Convert Recipe"
+                    <>
+                      <span className="hidden sm:inline">Generate or Convert Recipe</span>
+                      <span className="sm:hidden">Generate Recipe</span>
+                    </>
                   )}
                 </Button>
               </form>
             </TabsContent>
             
-            {/* Photo Input Tab */}
+            {/* Photo Input Tab - Responsive for mobile and tablet */}
             <TabsContent value="photo-input">
               <div className="mb-6">
                 <Label className="block text-sm font-medium mb-2">
@@ -429,17 +438,17 @@ export default function RecipeConverter() {
                   onChange={handleFileChange}
                 />
                 
-                {/* File Upload UI */}
+                {/* File Upload UI - Responsive */}
                 {!previewImage ? (
                   <div 
                     onClick={triggerFileInput}
-                    className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors"
+                    className="border-2 border-dashed border-gray-300 rounded-lg p-4 sm:p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors min-h-[180px]"
                   >
-                    <Image className="h-12 w-12 text-gray-400 mb-3" />
-                    <p className="text-center text-sm text-gray-500">
+                    <Image className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mb-2 sm:mb-3" />
+                    <p className="text-center text-xs sm:text-sm text-gray-500 px-2 sm:px-4">
                       Click to upload a photo of a recipe card, book page, handwritten recipe, or any food dish
                     </p>
-                    <p className="text-center text-xs text-gray-400 mt-2">
+                    <p className="text-center text-xs text-gray-400 mt-1 sm:mt-2">
                       Supports JPG, JPEG, PNG formats
                     </p>
                   </div>
@@ -448,24 +457,25 @@ export default function RecipeConverter() {
                     <img 
                       src={previewImage} 
                       alt="Recipe preview" 
-                      className="w-full h-auto rounded-lg max-h-[300px] object-contain bg-gray-100" 
+                      className="w-full h-auto rounded-lg max-h-[200px] sm:max-h-[300px] object-contain bg-gray-100" 
                     />
                     <Button
                       size="sm"
                       variant="secondary"
-                      className="absolute top-2 right-2"
+                      className="absolute top-2 right-2 text-xs px-2 py-1 h-auto sm:h-9"
                       onClick={() => setPreviewImage(null)}
                     >
-                      Replace
+                      <span className="hidden sm:inline">Replace</span>
+                      <span className="sm:hidden">×</span>
                     </Button>
                   </div>
                 )}
               </div>
               
               <div className="mb-6">
-                <p className="text-sm text-gray-600 mb-4">
+                <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">
                   Our AI will analyze the image and either:
-                  <ul className="list-disc pl-5 mt-2 space-y-1">
+                  <ul className="list-disc pl-4 sm:pl-5 mt-1 sm:mt-2 space-y-1">
                     <li>Extract a recipe from recipe cards, book pages, or handwritten recipes</li>
                     <li>Identify the dish from a food photo and generate a complete recipe for it</li>
                   </ul>
@@ -473,50 +483,52 @@ export default function RecipeConverter() {
                 
                 <Button 
                   type="button" 
-                  className="bg-primary hover:bg-primary/90 text-white w-full"
+                  className="bg-primary hover:bg-primary/90 text-white w-full py-2 sm:py-4 h-auto"
                   disabled={!previewImage || photoToRecipeMutation.isPending}
                   onClick={handlePhotoExtraction}
                 >
                   {photoToRecipeMutation.isPending ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Extracting Recipe...
+                      <span className="hidden sm:inline">Extracting Recipe...</span>
+                      <span className="sm:hidden">Extracting...</span>
                     </>
                   ) : (
                     <>
                       <Camera className="mr-2 h-4 w-4" />
-                      Extract Recipe from Photo
+                      <span className="hidden sm:inline">Extract Recipe from Photo</span>
+                      <span className="sm:hidden">Extract Recipe</span>
                     </>
                   )}
                 </Button>
               </div>
             </TabsContent>
             
-            {/* Dish Name Input Tab */}
+            {/* Dish Name Input Tab - Responsive for mobile and tablet */}
             <TabsContent value="dish-input">
               <div className="mb-6">
                 <Label htmlFor="dish-name" className="block text-sm font-medium mb-2">
                   Enter a Dish Name
                 </Label>
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                   <Textarea
                     id="dish-name"
-                    className="resize-y"
+                    className="resize-y min-h-[100px] sm:min-h-[150px]"
                     placeholder="Enter a dish name (e.g., Chocolate Chip Cookies, Beef Stroganoff)..."
                     value={recipeInput}
                     onChange={(e) => setRecipeInput(e.target.value)}
                   />
                   
-                  <div className="grid md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
-                      <Label htmlFor="cuisine-type" className="block text-sm font-medium mb-2">
+                      <Label htmlFor="cuisine-type" className="block text-sm font-medium mb-1 sm:mb-2">
                         Cuisine Type (Optional)
                       </Label>
                       <Select 
                         value={cuisineType} 
                         onValueChange={setCuisineType}
                       >
-                        <SelectTrigger id="cuisine-type">
+                        <SelectTrigger id="cuisine-type" className="h-9 sm:h-10">
                           <SelectValue placeholder="Select cuisine type" />
                         </SelectTrigger>
                         <SelectContent>
@@ -534,14 +546,14 @@ export default function RecipeConverter() {
                     </div>
                     
                     <div>
-                      <Label htmlFor="dietary-restrictions" className="block text-sm font-medium mb-2">
+                      <Label htmlFor="dietary-restrictions" className="block text-sm font-medium mb-1 sm:mb-2">
                         Dietary Restrictions (Optional)
                       </Label>
                       <Select 
                         value={dietaryRestrictions} 
                         onValueChange={setDietaryRestrictions}
                       >
-                        <SelectTrigger id="dietary-restrictions">
+                        <SelectTrigger id="dietary-restrictions" className="h-9 sm:h-10">
                           <SelectValue placeholder="Select restrictions" />
                         </SelectTrigger>
                         <SelectContent>
@@ -561,26 +573,28 @@ export default function RecipeConverter() {
               </div>
               
               <div className="mb-6">
-                <p className="text-sm text-gray-600 mb-4">
+                <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">
                   Our AI will generate a complete recipe based on the dish name you provide. You can
                   specify cuisine type and dietary restrictions for more tailored results.
                 </p>
                 
                 <Button 
                   type="button" 
-                  className="bg-primary hover:bg-primary/90 text-white w-full"
+                  className="bg-primary hover:bg-primary/90 text-white w-full py-2 sm:py-4 h-auto"
                   disabled={!recipeInput.trim() || recipeByDishMutation.isPending}
                   onClick={handleDishNameSearch}
                 >
                   {recipeByDishMutation.isPending ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Generating Recipe...
+                      <span className="hidden sm:inline">Generating Recipe...</span>
+                      <span className="sm:hidden">Generating...</span>
                     </>
                   ) : (
                     <>
                       <ChefHat className="mr-2 h-4 w-4" />
-                      Generate Recipe
+                      <span className="hidden sm:inline">Generate Recipe</span>
+                      <span className="sm:hidden">Generate</span>
                     </>
                   )}
                 </Button>
@@ -590,12 +604,12 @@ export default function RecipeConverter() {
         </CardContent>
       </Card>
       
-      {/* Conversion Results */}
+      {/* Conversion Results - Responsive for all screens */}
       {convertedResult && (
         <Card className="mb-8">
-          <CardContent className="pt-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="font-heading text-2xl font-bold">
+          <CardContent className="pt-4 sm:pt-6">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 sm:mb-4 gap-2 sm:gap-0">
+              <h2 className="font-heading text-xl sm:text-2xl font-bold">
                 {activeTab === "text-input" 
                   ? (convertedResult && convertedResult.includes("# Converted Recipe")) 
                     ? "Converted Recipe" 
@@ -607,7 +621,7 @@ export default function RecipeConverter() {
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="text-primary flex items-center"
+                className="text-primary flex items-center self-end sm:self-auto"
                 onClick={handleCopyResult}
               >
                 {isCopied ? (
@@ -622,9 +636,9 @@ export default function RecipeConverter() {
               </Button>
             </div>
             
-            <div className="border border-neutral-200 rounded-lg p-4 bg-neutral-50">
+            <div className="border border-neutral-200 rounded-lg p-3 sm:p-4 bg-neutral-50">
               <div 
-                className="prose prose-sm max-w-none"
+                className="prose prose-sm sm:prose max-w-none text-xs sm:text-sm md:text-base"
                 dangerouslySetInnerHTML={{ __html: convertedResult.replace(/\n/g, '<br>') }} 
               />
             </div>
@@ -632,11 +646,11 @@ export default function RecipeConverter() {
         </Card>
       )}
       
-      {/* Ingredient Database Preview */}
+      {/* Ingredient Database Preview - Responsive */}
       <Card>
-        <CardContent className="pt-6">
-          <h2 className="font-heading text-xl font-bold mb-4">Ingredient Database Preview</h2>
-          <p className="mb-4 text-sm text-gray-700">
+        <CardContent className="pt-4 sm:pt-6">
+          <h2 className="font-heading text-lg sm:text-xl font-bold mb-2 sm:mb-4">Ingredient Database Preview</h2>
+          <p className="mb-3 sm:mb-4 text-xs sm:text-sm text-gray-700">
             Our database contains precise weight measurements for hundreds of ingredients.
           </p>
           
