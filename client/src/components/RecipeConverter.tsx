@@ -119,19 +119,19 @@ export default function RecipeConverter() {
     if (!recipeInput.trim()) {
       toast({
         title: "Input Required",
-        description: "Please enter a recipe to convert",
+        description: "Please enter ingredients to generate a recipe",
         variant: "destructive",
       });
       return;
     }
     
-    // Use the actual scale factor for conversion
-    let scaleFactorToUse = showCustomScale ? customScaleFactor : scaleFactor;
+    // Use the servings/portions selection
+    let servings = showCustomScale ? customScaleFactor : scaleFactor;
     
     convertMutation.mutate({
       recipeText: recipeInput,
-      conversionType,
-      scaleFactor: scaleFactorToUse,
+      conversionType: "ingredient-to-recipe",  // Force ingredient generation mode
+      scaleFactor: servings,  // This will be used for number of portions
       humidityAdjust,
       proMode,
     });
@@ -226,8 +226,8 @@ export default function RecipeConverter() {
               <TabsTrigger value="text-input" className="py-2 px-1 sm:px-2 h-auto">
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-1">
                   <Upload className="h-4 w-4 flex-shrink-0" />
-                  <span className="hidden sm:inline">Generate or Convert</span>
-                  <span className="sm:hidden text-[9px] whitespace-nowrap">Input</span>
+                  <span className="hidden sm:inline">Generate from Ingredients</span>
+                  <span className="sm:hidden text-[9px] whitespace-nowrap">Ingredients</span>
                 </div>
               </TabsTrigger>
               <TabsTrigger value="photo-input" className="py-2 px-1 sm:px-2 h-auto">
@@ -251,55 +251,39 @@ export default function RecipeConverter() {
               <form onSubmit={handleConversion}>
                 <div className="mb-4 sm:mb-6">
                   <Label htmlFor="recipe-input" className="block text-sm font-medium mb-1 sm:mb-2">
-                    Enter Ingredients or Recipe
+                    Enter Ingredients List
                   </Label>
                   <div className="text-[10px] sm:text-xs text-gray-500 mb-1 sm:mb-2">
-                    <div>Our AI can:</div>
+                    <div>Enter your ingredients and we'll generate a complete recipe with:</div>
                     <ul className="list-disc pl-4 sm:pl-5 mt-1 mb-1 sm:mb-2 space-y-[2px] sm:space-y-1">
-                      <li>Generate a complete recipe from a list of ingredients</li>
-                      <li>Convert measurements in an existing recipe (cup → gram or gram → cup)</li>
+                      <li>Detailed instructions</li>
+                      <li>Cooking times</li>
+                      <li>Accurate measurements</li>
+                      <li>Serving suggestions</li>
                     </ul>
                   </div>
                   <Textarea
                     id="recipe-input"
                     className="min-h-[100px] sm:min-h-[150px] resize-y text-xs sm:text-sm"
-                    placeholder="Enter ingredients (one per line) or paste a complete recipe to convert..."
+                    placeholder="List your ingredients here, one per line:
+1 cup flour
+2 eggs
+1/2 cup sugar
+2 tablespoons butter
+..."
                     value={recipeInput}
                     onChange={(e) => setRecipeInput(e.target.value)}
                   />
                   <p className="text-[10px] sm:text-xs text-gray-500 mt-1">
-                    Our AI detects whether you've entered ingredients or a recipe and processes accordingly.
+                    The more ingredients you provide, the more accurate your recipe will be.
                   </p>
                 </div>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
-                  <div>
-                    <Label htmlFor="conversion-type" className="block text-sm font-medium mb-1 sm:mb-2">
-                      Conversion Type
-                    </Label>
-                    <Select 
-                      value={conversionType} 
-                      onValueChange={setConversionType}
-                    >
-                      <SelectTrigger id="conversion-type" className="h-9 sm:h-10 text-xs sm:text-sm">
-                        <SelectValue placeholder="Select conversion type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="cup-to-gram">Cups to Grams</SelectItem>
-                        <SelectItem value="gram-to-cup">Grams to Cups</SelectItem>
-                        <SelectItem value="oz-to-gram">Ounces to Grams</SelectItem>
-                        <SelectItem value="tbsp-to-gram">Tablespoons to Grams</SelectItem>
-                        <SelectItem value="gram-to-tbsp">Grams to Tablespoons</SelectItem>
-                        <SelectItem value="tsp-to-gram">Teaspoons to Grams</SelectItem>
-                        <SelectItem value="gram-to-tsp">Grams to Teaspoons</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="scale-factor" className="block text-sm font-medium mb-1 sm:mb-2">
-                      Scale Recipe
-                    </Label>
+                <div className="mb-4 sm:mb-6">
+                  <Label htmlFor="servings" className="block text-sm font-medium mb-1 sm:mb-2">
+                    Number of Servings
+                  </Label>
+                  <div className="flex items-center gap-3">
                     <Select 
                       value={scaleFactor} 
                       onValueChange={(value) => {
@@ -311,38 +295,42 @@ export default function RecipeConverter() {
                         }
                       }}
                     >
-                      <SelectTrigger id="scale-factor" className="h-9 sm:h-10 text-xs sm:text-sm">
-                        <SelectValue placeholder="Select scale factor" />
+                      <SelectTrigger id="servings" className="h-9 sm:h-10 text-xs sm:text-sm w-full sm:w-40">
+                        <SelectValue placeholder="Select servings" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="1">No Scaling (1x)</SelectItem>
-                        <SelectItem value="0.5">Half (0.5x)</SelectItem>
-                        <SelectItem value="2">Double (2x)</SelectItem>
-                        <SelectItem value="3">Triple (3x)</SelectItem>
+                        <SelectItem value="1">1 person</SelectItem>
+                        <SelectItem value="2">2 people</SelectItem>
+                        <SelectItem value="4">4 people</SelectItem>
+                        <SelectItem value="6">6 people</SelectItem>
+                        <SelectItem value="8">8 people</SelectItem>
+                        <SelectItem value="12">12 people</SelectItem>
                         <SelectItem value="custom">Custom...</SelectItem>
                       </SelectContent>
                     </Select>
+                    <div className="text-xs text-gray-500">
+                      Recipe will be generated with appropriate ingredient quantities
+                    </div>
                   </div>
                 </div>
                 
-                {/* Custom scale factor input - Responsive */}
+                {/* Custom servings input */}
                 {showCustomScale && (
                   <div className="mb-3 sm:mb-4">
-                    <Label htmlFor="custom-scale-factor" className="block text-sm font-medium mb-1 sm:mb-2">
-                      Enter Custom Scale Factor
+                    <Label htmlFor="custom-servings" className="block text-sm font-medium mb-1 sm:mb-2">
+                      Enter Custom Number of Servings
                     </Label>
                     <div className="flex gap-2 sm:gap-4">
                       <Input
-                        id="custom-scale-factor"
+                        id="custom-servings"
                         type="number"
-                        step="0.1"
-                        min="0.1"
-                        placeholder="1.5"
+                        step="1"
+                        min="1"
+                        placeholder="10"
                         value={customScaleFactor}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                           const value = e.target.value;
                           setCustomScaleFactor(value);
-                          // Don't update scaleFactor here, we'll use customScaleFactor directly in handleConversion
                         }}
                         className="w-24 sm:w-32 h-9 sm:h-10 text-xs sm:text-sm"
                       />
@@ -351,16 +339,16 @@ export default function RecipeConverter() {
                         variant="outline"
                         className="h-9 sm:h-10 text-xs sm:text-sm"
                         onClick={() => {
-                          if (parseFloat(customScaleFactor) > 0) {
+                          if (parseInt(customScaleFactor) > 0) {
                             setScaleFactor(customScaleFactor);
                             setShowCustomScale(false);
                             toast({
-                              title: "Scale Factor Applied",
-                              description: `Recipe will be scaled by ${customScaleFactor}x`,
+                              title: "Servings Applied",
+                              description: `Recipe will be generated for ${customScaleFactor} people`,
                             });
                           } else {
                             toast({
-                              title: "Invalid Scale Factor",
+                              title: "Invalid Number",
                               description: "Please enter a positive number",
                               variant: "destructive",
                             });
@@ -371,7 +359,7 @@ export default function RecipeConverter() {
                       </Button>
                     </div>
                     <p className="text-[10px] sm:text-xs text-gray-500 mt-1">
-                      Enter a value like 1.25 (for 1.25x) or 0.75 (for 3/4 sized recipe)
+                      Enter the number of people you're cooking for
                     </p>
                   </div>
                 )}
@@ -415,7 +403,7 @@ export default function RecipeConverter() {
                     </>
                   ) : (
                     <>
-                      <span className="hidden sm:inline">Generate or Convert Recipe</span>
+                      <span className="hidden sm:inline">Generate Recipe</span>
                       <span className="sm:hidden">Generate Recipe</span>
                     </>
                   )}
