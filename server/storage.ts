@@ -12,6 +12,8 @@ import {
   type ConversionHistory,
   type InsertConversionHistory
 } from "@shared/schema";
+import { db } from './db';
+import { eq } from 'drizzle-orm';
 
 // Storage interface with CRUD methods
 export interface IStorage {
@@ -38,203 +40,111 @@ export interface IStorage {
   saveConversionHistory(conversionHistory: InsertConversionHistory): Promise<ConversionHistory>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private socialLinksMap: Map<number, SocialLink>;
-  private recipesMap: Map<number, Recipe>;
-  private conversionHistoryMap: Map<number, ConversionHistory>;
-  
-  private userIdCounter: number;
-  private socialLinkIdCounter: number;
-  private recipeIdCounter: number;
-  private conversionHistoryIdCounter: number;
-
-  constructor() {
-    this.users = new Map();
-    this.socialLinksMap = new Map();
-    this.recipesMap = new Map();
-    this.conversionHistoryMap = new Map();
-    
-    this.userIdCounter = 1;
-    this.socialLinkIdCounter = 1;
-    this.recipeIdCounter = 1;
-    this.conversionHistoryIdCounter = 1;
-    
-    // Initialize with default social links
-    const defaultLinks = [
-      { platform: "Instagram", username: "@precision_baking", url: "#", iconClass: "ri-instagram-line", bgColorClass: "primary" },
-      { platform: "Twitter", username: "@precision_baking", url: "#", iconClass: "ri-twitter-x-line", bgColorClass: "accent" },
-      { platform: "GitHub", username: "@precision_baking", url: "#", iconClass: "ri-github-fill", bgColorClass: "secondary" },
-      { platform: "Pinterest", username: "@precision_baking", url: "#", iconClass: "ri-pinterest-line", bgColorClass: "primary" },
-      { platform: "YouTube", username: "Precision Baking", url: "#", iconClass: "ri-youtube-line", bgColorClass: "secondary" },
-      { platform: "Facebook", username: "Precision Baking", url: "#", iconClass: "ri-facebook-circle-line", bgColorClass: "accent" }
-    ];
-    
-    // Add each default link to the storage
-    defaultLinks.forEach(link => {
-      this.socialLinksMap.set(this.socialLinkIdCounter, {
-        id: this.socialLinkIdCounter,
-        ...link,
-        user_id: null
-      });
-      this.socialLinkIdCounter++;
-    });
-    
-    // Initialize with default featured recipes
-    const defaultRecipes = [
-      {
-        title: "Perfect Chocolate Chip Cookies",
-        description: "Precision measurements for the perfect chewy texture.",
-        ingredients: [
-          { name: "all-purpose flour", amount: "2 cups", weight: "240g" },
-          { name: "granulated sugar", amount: "1 cup", weight: "200g" },
-          { name: "brown sugar, packed", amount: "1 cup", weight: "220g" },
-          { name: "unsalted butter", amount: "1/2 cup", weight: "113g" },
-          { name: "vanilla extract", amount: "1 tsp", weight: "5g" },
-          { name: "salt", amount: "1 tsp", weight: "6g" },
-          { name: "chocolate chips", amount: "1 cup", weight: "170g" }
-        ],
-        instructions: "Mix dry ingredients. Cream butter and sugars. Add vanilla. Combine and fold in chocolate chips. Bake at 350°F for 12-15 minutes.",
-        imageUrl: "https://images.unsplash.com/photo-1565958011703-44f9829ba187?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
-        featured: true
-      },
-      {
-        title: "Vanilla Bean Cupcakes",
-        description: "Light and fluffy cupcakes with precise measurements.",
-        ingredients: [
-          { name: "cake flour", amount: "1 3/4 cups", weight: "190g" },
-          { name: "granulated sugar", amount: "1 cup", weight: "200g" },
-          { name: "baking powder", amount: "1.5 tsp", weight: "6g" },
-          { name: "unsalted butter", amount: "1/2 cup", weight: "113g" },
-          { name: "vanilla bean paste", amount: "2 tsp", weight: "10g" },
-          { name: "eggs", amount: "2 large", weight: "100g" },
-          { name: "milk", amount: "3/4 cup", weight: "180g" }
-        ],
-        instructions: "Cream butter and sugar. Add eggs one at a time. Alternate adding dry ingredients and milk. Bake at 350°F for 18-20 minutes.",
-        imageUrl: "https://images.unsplash.com/photo-1486427944299-d1955d23e34d?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
-        featured: true
-      }
-    ];
-    
-    // Add each default recipe to the storage
-    defaultRecipes.forEach(recipe => {
-      this.recipesMap.set(this.recipeIdCounter, {
-        id: this.recipeIdCounter,
-        ...recipe,
-        user_id: null
-      });
-      this.recipeIdCounter++;
-    });
-  }
-
+export class DatabaseStorage implements IStorage {
   // User methods
   async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.userIdCounter++;
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
+    const [user] = await db.insert(users).values(insertUser).returning();
     return user;
   }
   
   // Social link methods
   async getSocialLinks(userId?: number): Promise<SocialLink[]> {
-    const links = Array.from(this.socialLinksMap.values());
     if (userId) {
-      return links.filter(link => link.user_id === userId);
+      return db.select().from(socialLinks).where(eq(socialLinks.user_id, userId));
     }
-    return links;
+    return db.select().from(socialLinks);
   }
   
   async createSocialLink(insertSocialLink: InsertSocialLink): Promise<SocialLink> {
-    const id = this.socialLinkIdCounter++;
-    const socialLink: SocialLink = { ...insertSocialLink, id };
-    this.socialLinksMap.set(id, socialLink);
-    return socialLink;
+    const [link] = await db.insert(socialLinks).values(insertSocialLink).returning();
+    return link;
   }
   
   async updateSocialLink(id: number, socialLink: Partial<InsertSocialLink>): Promise<SocialLink | undefined> {
-    const existingLink = this.socialLinksMap.get(id);
-    if (!existingLink) {
-      return undefined;
-    }
-    
-    const updatedLink = { ...existingLink, ...socialLink };
-    this.socialLinksMap.set(id, updatedLink);
-    return updatedLink;
+    const [updated] = await db
+      .update(socialLinks)
+      .set(socialLink)
+      .where(eq(socialLinks.id, id))
+      .returning();
+    return updated;
   }
   
   async deleteSocialLink(id: number): Promise<boolean> {
-    return this.socialLinksMap.delete(id);
+    await db
+      .delete(socialLinks)
+      .where(eq(socialLinks.id, id));
+    // Assume success if no error is thrown
+    return true;
   }
   
   // Recipe methods
   async getRecipes(userId?: number, featured?: boolean): Promise<Recipe[]> {
-    let recipes = Array.from(this.recipesMap.values());
-    
-    if (userId) {
-      recipes = recipes.filter(recipe => recipe.user_id === userId);
+    // Handle all filtering combinations
+    if (userId && featured !== undefined) {
+      return db.select().from(recipes)
+        .where(eq(recipes.user_id, userId))
+        .where(eq(recipes.featured, featured));
+    } else if (userId) {
+      return db.select().from(recipes)
+        .where(eq(recipes.user_id, userId));
+    } else if (featured !== undefined) {
+      return db.select().from(recipes)
+        .where(eq(recipes.featured, featured));
+    } else {
+      return db.select().from(recipes);
     }
-    
-    if (featured !== undefined) {
-      recipes = recipes.filter(recipe => recipe.featured === featured);
-    }
-    
-    return recipes;
   }
   
   async getRecipe(id: number): Promise<Recipe | undefined> {
-    return this.recipesMap.get(id);
+    const [recipe] = await db.select().from(recipes).where(eq(recipes.id, id));
+    return recipe;
   }
   
   async createRecipe(insertRecipe: InsertRecipe): Promise<Recipe> {
-    const id = this.recipeIdCounter++;
-    const recipe: Recipe = { ...insertRecipe, id };
-    this.recipesMap.set(id, recipe);
+    const [recipe] = await db.insert(recipes).values(insertRecipe).returning();
     return recipe;
   }
   
   async updateRecipe(id: number, recipe: Partial<InsertRecipe>): Promise<Recipe | undefined> {
-    const existingRecipe = this.recipesMap.get(id);
-    if (!existingRecipe) {
-      return undefined;
-    }
-    
-    const updatedRecipe = { ...existingRecipe, ...recipe };
-    this.recipesMap.set(id, updatedRecipe);
-    return updatedRecipe;
+    const [updated] = await db
+      .update(recipes)
+      .set(recipe)
+      .where(eq(recipes.id, id))
+      .returning();
+    return updated;
   }
   
   async deleteRecipe(id: number): Promise<boolean> {
-    return this.recipesMap.delete(id);
+    await db
+      .delete(recipes)
+      .where(eq(recipes.id, id));
+    // Assume success if no error is thrown
+    return true;
   }
   
   // Conversion history methods
   async getConversionHistory(userId?: number): Promise<ConversionHistory[]> {
-    const history = Array.from(this.conversionHistoryMap.values());
-    
     if (userId) {
-      return history.filter(item => item.user_id === userId);
+      return db.select().from(conversionHistory).where(eq(conversionHistory.user_id, userId));
     }
-    
-    return history;
+    return db.select().from(conversionHistory);
   }
   
   async saveConversionHistory(insertHistory: InsertConversionHistory): Promise<ConversionHistory> {
-    const id = this.conversionHistoryIdCounter++;
-    const historyItem: ConversionHistory = { ...insertHistory, id };
-    this.conversionHistoryMap.set(id, historyItem);
-    return historyItem;
+    const [history] = await db.insert(conversionHistory).values(insertHistory).returning();
+    return history;
   }
 }
 
 // Export the storage instance
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
