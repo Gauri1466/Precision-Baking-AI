@@ -20,6 +20,7 @@ export default function RecipeConverter() {
   const [scaleFactor, setScaleFactor] = useState("1");
   const [customScaleFactor, setCustomScaleFactor] = useState("1.5");
   const [showCustomScale, setShowCustomScale] = useState(false);
+  const [actualScaleFactor, setActualScaleFactor] = useState("1");
   const [humidityAdjust, setHumidityAdjust] = useState(false);
   const [proMode, setProMode] = useState(false);
   const [convertedResult, setConvertedResult] = useState<string | null>(null);
@@ -102,10 +103,13 @@ export default function RecipeConverter() {
       return;
     }
     
+    // Use the actual scale factor for conversion
+    let scaleFactorToUse = showCustomScale ? customScaleFactor : scaleFactor;
+    
     convertMutation.mutate({
       recipeText: recipeInput,
       conversionType,
-      scaleFactor,
+      scaleFactor: scaleFactorToUse,
       humidityAdjust,
       proMode,
     });
@@ -298,8 +302,9 @@ export default function RecipeConverter() {
                         placeholder="1.5"
                         value={customScaleFactor}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                          setCustomScaleFactor(e.target.value);
-                          setScaleFactor(e.target.value);
+                          const value = e.target.value;
+                          setCustomScaleFactor(value);
+                          // Don't update scaleFactor here, we'll use customScaleFactor directly in handleConversion
                         }}
                         className="w-32"
                       />
