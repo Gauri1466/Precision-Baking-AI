@@ -94,7 +94,7 @@ export default function Home() {
         {floatingElements.map((el) => (
           <motion.div
             key={el.id}
-            className="absolute opacity-10 select-none"
+            className="absolute select-none"
             style={{ 
               left: `${el.x}%`, 
               top: `${el.y}%`,
@@ -105,7 +105,7 @@ export default function Home() {
               y: [0, Math.random() * 60 - 30, 0],
               rotate: [0, el.rotation, 0],
               scale: [1, 1 + Math.random() * 0.3, 1],
-              opacity: [0.08, 0.15, 0.08]
+              opacity: [0.2, 0.3, 0.2]
             }}
             transition={{
               duration: 15 + Math.random() * 15,

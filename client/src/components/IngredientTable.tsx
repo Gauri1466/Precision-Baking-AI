@@ -1,16 +1,23 @@
 import { useEffect, useState } from "react";
 import { ingredientData } from "@/lib/ingredientData";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Button } from "@/components/ui/button";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 export default function IngredientTable() {
   const [ingredients, setIngredients] = useState<any[]>([]);
+  const [showAll, setShowAll] = useState(false);
   const isMobile = useIsMobile();
   
   useEffect(() => {
-    // Display fewer ingredients on mobile
+    // Update ingredients when showAll status changes or mobile state changes
     const limit = isMobile ? 3 : 5;
-    setIngredients(ingredientData.slice(0, limit));
-  }, [isMobile]);
+    setIngredients(showAll ? ingredientData : ingredientData.slice(0, limit));
+  }, [isMobile, showAll]);
+
+  const toggleShowAll = () => {
+    setShowAll(!showAll);
+  };
 
   return (
     <div className="overflow-x-auto -mx-3 sm:mx-0">
@@ -25,8 +32,8 @@ export default function IngredientTable() {
         </thead>
         <tbody className="divide-y divide-neutral-200">
           {ingredients.map((ingredient, index) => (
-            <tr key={index}>
-              <td className="px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm">{ingredient.name}</td>
+            <tr key={index} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+              <td className="px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm font-medium">{ingredient.name}</td>
               <td className="px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm">{ingredient.cup}g</td>
               <td className="px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm">{ingredient.tablespoon}g</td>
               <td className="px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm">{ingredient.teaspoon}g</td>
@@ -36,9 +43,21 @@ export default function IngredientTable() {
       </table>
       
       <div className="mt-3 sm:mt-4 text-center">
-        <a href="#" className="text-primary text-xs sm:text-sm font-medium hover:underline">
-          View Full Ingredient Database
-        </a>
+        <Button 
+          variant="ghost" 
+          className="text-primary text-xs sm:text-sm font-medium hover:underline"
+          onClick={toggleShowAll}
+        >
+          {showAll ? (
+            <span className="flex items-center">
+              Show Less <ChevronUp className="ml-1 h-3 w-3" />
+            </span>
+          ) : (
+            <span className="flex items-center">
+              View Full Ingredient Database <ChevronDown className="ml-1 h-3 w-3" />
+            </span>
+          )}
+        </Button>
       </div>
     </div>
   );
