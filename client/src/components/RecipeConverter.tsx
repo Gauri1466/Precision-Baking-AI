@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import IngredientTable from "./IngredientTable";
@@ -17,6 +18,8 @@ export default function RecipeConverter() {
   const [recipeInput, setRecipeInput] = useState("");
   const [conversionType, setConversionType] = useState("cup-to-gram");
   const [scaleFactor, setScaleFactor] = useState("1");
+  const [customScaleFactor, setCustomScaleFactor] = useState("1.5");
+  const [showCustomScale, setShowCustomScale] = useState(false);
   const [humidityAdjust, setHumidityAdjust] = useState(false);
   const [proMode, setProMode] = useState(false);
   const [convertedResult, setConvertedResult] = useState<string | null>(null);
@@ -257,7 +260,14 @@ export default function RecipeConverter() {
                     </Label>
                     <Select 
                       value={scaleFactor} 
-                      onValueChange={setScaleFactor}
+                      onValueChange={(value) => {
+                        if (value === "custom") {
+                          setShowCustomScale(true);
+                        } else {
+                          setShowCustomScale(false);
+                          setScaleFactor(value);
+                        }
+                      }}
                     >
                       <SelectTrigger id="scale-factor">
                         <SelectValue placeholder="Select scale factor" />
@@ -273,6 +283,55 @@ export default function RecipeConverter() {
                   </div>
                 </div>
                 
+                {/* Custom scale factor input */}
+                {showCustomScale && (
+                  <div className="mb-4">
+                    <Label htmlFor="custom-scale-factor" className="block text-sm font-medium mb-2">
+                      Enter Custom Scale Factor
+                    </Label>
+                    <div className="flex gap-4">
+                      <Input
+                        id="custom-scale-factor"
+                        type="number"
+                        step="0.1"
+                        min="0.1"
+                        placeholder="1.5"
+                        value={customScaleFactor}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                          setCustomScaleFactor(e.target.value);
+                          setScaleFactor(e.target.value);
+                        }}
+                        className="w-32"
+                      />
+                      <Button 
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          if (parseFloat(customScaleFactor) > 0) {
+                            setScaleFactor(customScaleFactor);
+                            setShowCustomScale(false);
+                            toast({
+                              title: "Scale Factor Applied",
+                              description: `Recipe will be scaled by ${customScaleFactor}x`,
+                            });
+                          } else {
+                            toast({
+                              title: "Invalid Scale Factor",
+                              description: "Please enter a positive number",
+                              variant: "destructive",
+                            });
+                          }
+                        }}
+                      >
+                        Apply
+                      </Button>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Enter a value like 1.25 (for 1.25x) or 0.75 (for 3/4 sized recipe)
+                    </p>
+                  </div>
+                )}
+
                 <div className="flex flex-wrap gap-4 mb-6">
                   <div className="flex items-center space-x-2">
                     <Checkbox 

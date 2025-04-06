@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Header from "@/components/Header";
-import MeasurementConverter from "@/components/MeasurementConverter";
+import MeasurementConverter from "../components/MeasurementConverter";
 import Footer from "@/components/Footer";
 
 export default function MeasurementPage() {
