@@ -56,17 +56,8 @@ export default function RecipeConverter() {
   // Photo-to-recipe mutation
   const photoToRecipeMutation = useMutation({
     mutationFn: async (imageData: string) => {
-      try {
-        const response = await apiRequest("POST", "/api/photo-to-recipe", { 
-          image: imageData.startsWith('data:') ? imageData : `data:image/jpeg;base64,${imageData}`
-        });
-        if (!response.ok) {
-          throw new Error('Failed to process image');
-        }
-        return response.json();
-      } catch (error) {
-        throw new Error(error instanceof Error ? error.message : 'Failed to process image');
-      }
+      const response = await apiRequest("POST", "/api/photo-to-recipe", { image: imageData });
+      return response.json();
     },
     onSuccess: (data) => {
       if (data.success) {
