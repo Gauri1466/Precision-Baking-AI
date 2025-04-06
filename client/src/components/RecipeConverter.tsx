@@ -213,10 +213,10 @@ export default function RecipeConverter() {
 
   return (
     <div>
-      <Card className="mb-8">
-        <CardContent className="pt-6">
-          <h2 className="font-heading text-2xl font-bold mb-4">Recipe Converter</h2>
-          <p className="mb-6 text-gray-700">
+      <Card className="mb-4 sm:mb-8">
+        <CardContent className="pt-4 sm:pt-6 px-3 sm:px-6">
+          <h2 className="font-heading text-xl sm:text-2xl font-bold mb-2 sm:mb-4">Recipe Converter</h2>
+          <p className="mb-4 sm:mb-6 text-xs sm:text-sm md:text-base text-gray-700">
             Convert vague measurements like "1 cup of flour" into exact weights like "120 grams" for perfect results every time.
           </p>
           
@@ -253,7 +253,7 @@ export default function RecipeConverter() {
                     Enter Ingredients or Recipe
                   </Label>
                   <div className="text-[10px] sm:text-xs text-gray-500 mb-1 sm:mb-2">
-                    <p>Our AI can:</p>
+                    <div>Our AI can:</div>
                     <ul className="list-disc pl-4 sm:pl-5 mt-1 mb-1 sm:mb-2 space-y-[2px] sm:space-y-1">
                       <li>Generate a complete recipe from a list of ingredients</li>
                       <li>Convert measurements in an existing recipe (cup → gram or gram → cup)</li>
@@ -473,13 +473,13 @@ export default function RecipeConverter() {
               </div>
               
               <div className="mb-6">
-                <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">
-                  Our AI will analyze the image and either:
+                <div className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">
+                  <div>Our AI will analyze the image and either:</div>
                   <ul className="list-disc pl-4 sm:pl-5 mt-1 sm:mt-2 space-y-1">
                     <li>Extract a recipe from recipe cards, book pages, or handwritten recipes</li>
                     <li>Identify the dish from a food photo and generate a complete recipe for it</li>
                   </ul>
-                </p>
+                </div>
                 
                 <Button 
                   type="button" 
