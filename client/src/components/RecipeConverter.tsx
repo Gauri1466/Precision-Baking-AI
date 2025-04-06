@@ -204,7 +204,7 @@ export default function RecipeConverter() {
               <TabsTrigger value="text-input" className="flex items-center justify-center">
                 <span className="flex items-center">
                   <Upload className="h-4 w-4 mr-2" />
-                  Text Recipe
+                  Convert Measurements
                 </span>
               </TabsTrigger>
               <TabsTrigger value="photo-input" className="flex items-center justify-center">
@@ -216,7 +216,7 @@ export default function RecipeConverter() {
               <TabsTrigger value="dish-input" className="flex items-center justify-center">
                 <span className="flex items-center">
                   <ChefHat className="h-4 w-4 mr-2" />
-                  Dish Name
+                  Generate Recipe
                 </span>
               </TabsTrigger>
             </TabsList>
@@ -226,15 +226,18 @@ export default function RecipeConverter() {
               <form onSubmit={handleConversion}>
                 <div className="mb-6">
                   <Label htmlFor="recipe-input" className="block text-sm font-medium mb-2">
-                    Paste Your Recipe
+                    Paste Your Recipe for Measurement Conversion
                   </Label>
                   <Textarea
                     id="recipe-input"
                     className="min-h-[150px] resize-y"
-                    placeholder="Paste your recipe here or type ingredients with measurements..."
+                    placeholder="Paste your recipe with measurements to convert (e.g., '2 cups flour, 1 tablespoon sugar')..."
                     value={recipeInput}
                     onChange={(e) => setRecipeInput(e.target.value)}
                   />
+                  <p className="text-xs text-gray-500 mt-1">
+                    This tab only converts measurements in existing recipes, it doesn't generate new recipes.
+                  </p>
                 </div>
                 
                 <div className="grid md:grid-cols-2 gap-4 mb-6">
@@ -430,7 +433,8 @@ export default function RecipeConverter() {
               <div className="mb-6">
                 <p className="text-sm text-gray-600 mb-4">
                   Our AI will analyze the image and extract the recipe with ingredients and instructions.
-                  After extraction, you can edit and convert the recipe as needed.
+                  It can read recipe cards, book pages, or handwritten recipes and generate a complete
+                  recipe based on what it identifies in the image.
                 </p>
                 
                 <Button 
@@ -557,7 +561,13 @@ export default function RecipeConverter() {
         <Card className="mb-8">
           <CardContent className="pt-6">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="font-heading text-2xl font-bold">Converted Recipe</h2>
+              <h2 className="font-heading text-2xl font-bold">
+                {activeTab === "text-input" 
+                  ? "Converted Recipe"
+                  : activeTab === "photo-input"
+                    ? "Extracted Recipe"
+                    : "Generated Recipe"}
+              </h2>
               <Button 
                 variant="ghost" 
                 size="sm" 
