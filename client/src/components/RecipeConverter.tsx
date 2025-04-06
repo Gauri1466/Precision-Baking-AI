@@ -222,27 +222,27 @@ export default function RecipeConverter() {
           
           {/* Input Method Tabs - Responsive for all screen sizes */}
           <Tabs defaultValue="text-input" value={activeTab} onValueChange={setActiveTab} className="mb-4 sm:mb-6">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="text-input" className="px-1 py-2 sm:py-2 h-auto">
-                <span className="flex flex-col sm:flex-row items-center justify-center">
-                  <Upload className="h-4 w-4 mb-1 sm:mb-0 sm:mr-2" />
+            <TabsList className="grid w-full grid-cols-3 min-h-[60px] sm:min-h-0 max-w-full overflow-hidden">
+              <TabsTrigger value="text-input" className="py-2 px-1 sm:px-2 h-auto">
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-1">
+                  <Upload className="h-4 w-4 flex-shrink-0" />
                   <span className="hidden sm:inline">Generate or Convert</span>
-                  <span className="sm:hidden text-[10px] leading-tight">Text</span>
-                </span>
+                  <span className="sm:hidden text-[9px] whitespace-nowrap">Input</span>
+                </div>
               </TabsTrigger>
-              <TabsTrigger value="photo-input" className="px-1 py-2 sm:py-2 h-auto">
-                <span className="flex flex-col sm:flex-row items-center justify-center">
-                  <Camera className="h-4 w-4 mb-1 sm:mb-0 sm:mr-2" />
+              <TabsTrigger value="photo-input" className="py-2 px-1 sm:px-2 h-auto">
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-1">
+                  <Camera className="h-4 w-4 flex-shrink-0" />
                   <span className="hidden sm:inline">Photo to Recipe</span>
-                  <span className="sm:hidden text-[10px] leading-tight">Photo</span>
-                </span>
+                  <span className="sm:hidden text-[9px] whitespace-nowrap">Photo</span>
+                </div>
               </TabsTrigger>
-              <TabsTrigger value="dish-input" className="px-1 py-2 sm:py-2 h-auto">
-                <span className="flex flex-col sm:flex-row items-center justify-center">
-                  <ChefHat className="h-4 w-4 mb-1 sm:mb-0 sm:mr-2" />
+              <TabsTrigger value="dish-input" className="py-2 px-1 sm:px-2 h-auto">
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-1">
+                  <ChefHat className="h-4 w-4 flex-shrink-0" />
                   <span className="hidden sm:inline">Generate by Dish Name</span>
-                  <span className="sm:hidden text-[10px] leading-tight">Dish</span>
-                </span>
+                  <span className="sm:hidden text-[9px] whitespace-nowrap">Dish</span>
+                </div>
               </TabsTrigger>
             </TabsList>
             
